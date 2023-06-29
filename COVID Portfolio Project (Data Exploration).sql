@@ -1,39 +1,46 @@
+/*
+
+Exploring COVID19 Data 
+
+*/
+
 Select *
 from SQLPortfolioProject..CovidDeaths
 Where continent is not NULL 
 order by 3,4
 
---Select *
---from SQLPortfolioProject..CovidVaccinations
---order by 3,4
 
  Select Location,date,total_cases,new_cases,total_deaths,population
  from SQLPortfolioProject..CovidDeaths
  order by 1,2
 
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
  --Here we are looking at Total Cases vs Total Deaths
  --Shows the likelihood of dying if you contract covid in your country (ie. US)
+	
  Select Location,date,total_cases,total_deaths, (total_deaths/total_cases)*100 as DeathPercentage
  from SQLPortfolioProject..CovidDeaths
  Where Location like '%states%'
  order by 1,2
 
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
  --Here we are looking at Total Cases vs Population
  --Shows what percentage of population contracted Covid (ie. US)
+	
 Select Location,date,population,total_cases,(total_cases/population)*100 as PercentPopulationInfected
  from SQLPortfolioProject..CovidDeaths
  Where Location like '%states%'
  order by 1,2
-
+	
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
  --Looking at Countries with Highest Infection Rate vs Population
  Select Location,population,MAX(total_cases) as HighestInfectionCount, Max((total_cases/population))*100 as PercentPopulationInfected
  from SQLPortfolioProject..CovidDeaths
  Group by location,population
  order by percentpopulationinfected desc
 
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   --Looking at Countries with Highest Death Count per Population
-  --Had to cast total_deaths as int to run/compute data properly (nvar vs int)**
-  --Where continent is NOT NULL: ensures that ¡®continent¡¯ is actually 'continent' and not 'country'**
 
  Select Location,Max(cast(total_deaths as int)) as TotalDeathCount
  From SQLPortfolioProject..CovidDeaths
@@ -41,7 +48,7 @@ Where continent is not NULL
  Group by location
  order by TotalDeathCount desc 
 
-
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
  --LET'S BREAK THINGS DOWN BY CONTINENT
  Select continent, Max(cast(total_deaths as int)) as TotalDeathCount
   From SQLPortfolioProject..CovidDeaths
@@ -49,6 +56,7 @@ Where continent is not NULL
  Group by continent
  order by TotalDeathCount desc 
 
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
  --GLOBAL NUMBERS
  --new_deaths' a more accurate representation of total deaths**
 
@@ -62,7 +70,8 @@ Where continent is not NULL
   From SQLPortfolioProject..CovidDeaths
   Where continent is not null 
  order by 1,2
-
+	
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
  -- Looking at Total Population vs Vaccinations 
 
  Select dea.continent, dea.location, dea.date, dea.population, vac.new_vaccinations
@@ -73,8 +82,9 @@ Where continent is not NULL
 	  and dea.date = vac.date
 	    Where dea.continent is not null 
 	  order by 2,3
-
---USE CTE
+	
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--Using CTE
 With Popvsvac (Continent, Location, date, Population, new_vaccinations, RollingPeopleVaccinated)
 as
 (
@@ -90,9 +100,9 @@ as
 Select *, (RollingPeopleVaccinated/Population)*100
 from popvsvac
 
-
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 --TEMP TABLE
---did drop table to just in case there is already object of same name in database**
+--I did 'drop table' to just in case there is already an object of same name in database**
 
 Drop table if exists #PercentPopulationVaccinated
 Create Table #PercentPopulationVaccinated
@@ -120,7 +130,8 @@ Insert into #PercentPopulationVaccinated
 Select *, (RollingPeopleVaccinated/Population)*100
 from #PercentPopulationVaccinated
 
---Creating View to store data for later visualazations
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--Creating View to store data for later visualizations
 
 Create View PercentPopulationVaccinated as 
 Select dea.continent, dea.location, dea.date, dea.population, vac.new_vaccinations
@@ -132,7 +143,7 @@ Select dea.continent, dea.location, dea.date, dea.population, vac.new_vaccinatio
 	    Where dea.continent is not null 
 	  --order by 2,3
 
---Now we can use the view as an actual table!
+--Now we can use the view as an actual table! :)
 
       Select *
       From PercentPopulationVaccinated
